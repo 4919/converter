@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>4919.jp Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+<body>
+  <input type="file" id="select" />
+  <div id="download-buttons"></div>
+  
+  <script src="js/lib/papaparse.min.js"></script>
+  <script>
+    function generateDownloadButton(separatedData){
+      const downloadButtons = document.getElementById('download-buttons')
+
+      for (const data of separatedData){
+        const button = document.createElement('button')
+        button.textContent = data['学校名称']
+        button.onclick = () => {
+          const filename = data['提供年月日'] + data['学校所在地_全国地方公共団体コード'] + data['学校ID'] + '.csv'
+          const bom = new Uint8Array([0xef, 0xbb, 0xbf])
+          const blob = new Blob([bom, data['csvdata']], {type: 'text/csv'});
+          const url = (window.URL || window.webkitURL).createObjectURL(blob)
+          const downloader = document.createElement('a')
+          downloader.href = url
+          downloader.download = filename
+          downloader.click()
+          downloader.remove()
+        }
+        downloadButtons.appendChild(button)
+      }
+    }
+
+    function matrix2dict(matrixData){
+      title = matrixData.shift()
+      return matrixData.map(x => x.reduce((accumlator, currentValue, currentIndex) => {
+        accumlator[title[currentIndex]] = currentValue
+        return accumlator
+      }, {}))
+    }
+
+    function dataSeparatedBySchoolName(dictData){
+      schoolNames = []
+      for (const x of dictData){
+        if (!('学校名称' in x)){
+          continue
+        }
+        if (!schoolNames.includes(x['学校名称'])){
+          schoolNames.push(x['学校名称'])
+        }
+      }
+
+      separatedData = []
+      for (const schoolName of schoolNames){
+        const schoolData = {}
+        schoolMenuData = dictData.filter(x => x['学校名称'] == schoolName)
+        schoolData['学校名称'] = schoolName
+        schoolData['学校所在地_全国地方公共団体コード'] = schoolMenuData[0]['学校所在地_全国地方公共団体コード']
+        schoolData['学校ID'] = schoolMenuData[0]['学校ID']
+        schoolData['提供年月日'] = schoolMenuData[0]['提供年月日']
+        schoolData['dictdata'] = schoolMenuData
+        schoolData['csvdata'] = Papa.unparse(schoolMenuData)
+        separatedData.push(schoolData)
+      }
+      return separatedData
+    }
+
+    if(window.File) {
+      const select = document.getElementById('select')
+
+      select.addEventListener('change', function(e) {
+        const fileData = e.target.files[0]
+        Papa.parse(fileData, {
+          complete: function(results){
+            matrixData = results['data']
+            separatedData = dataSeparatedBySchoolName(matrix2dict(matrixData))
+            generateDownloadButton(separatedData)
+          }
+        })
+      }, false)
+    }
+  </script>
+</body>
