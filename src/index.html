@@ -1,84 +1,134 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>4919.jp Converter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-</head>
-<body>
-  <input type="file" id="select" />
-  <div id="download-buttons"></div>
-  
-  <script src="js/lib/papaparse.min.js"></script>
-  <script>
-    function generateDownloadButton(separatedData){
-      const downloadButtons = document.getElementById('download-buttons')
+  <head>
+    <meta charset="utf-8" />
+    <title>4919.jp Converter</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"
+    />
+  </head>
+  <body>
+    <input type="file" id="select" />
+    <div id="download-buttons"></div>
 
-      for (const data of separatedData){
-        const button = document.createElement('button')
-        button.textContent = data['学校名称']
-        button.onclick = () => {
-          const filename = data['提供年月日'] + data['学校所在地_全国地方公共団体コード'] + data['学校ID'] + '.csv'
-          const bom = new Uint8Array([0xef, 0xbb, 0xbf])
-          const blob = new Blob([bom, data['csvdata']], {type: 'text/csv'});
-          const url = (window.URL || window.webkitURL).createObjectURL(blob)
-          const downloader = document.createElement('a')
-          downloader.href = url
-          downloader.download = filename
-          downloader.click()
-          downloader.remove()
-        }
-        downloadButtons.appendChild(button)
-      }
-    }
+    <script src="js/lib/papaparse.min.js"></script>
+    <script>
+      function generateDownloadButton(separatedData) {
+        const downloadButtons = document.getElementById("download-buttons");
 
-    function matrix2dict(matrixData){
-      title = matrixData.shift()
-      return matrixData.map(x => x.reduce((accumlator, currentValue, currentIndex) => {
-        accumlator[title[currentIndex]] = currentValue
-        return accumlator
-      }, {}))
-    }
-
-    function dataSeparatedBySchoolName(dictData){
-      schoolNames = []
-      for (const x of dictData){
-        if (!('学校名称' in x)){
-          continue
-        }
-        if (!schoolNames.includes(x['学校名称'])){
-          schoolNames.push(x['学校名称'])
+        for (const data of separatedData) {
+          const button = document.createElement("button");
+          button.textContent = data["学校名称"];
+          button.onclick = () => {
+            const filename =
+              data["提供年月日"] +
+              "_" +
+              data["全国地方公共団体コード"] +
+              "_" +
+              data["学校ID"] +
+              ".csv";
+            const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
+            const blob = new Blob([bom, data["csvdata"]], { type: "text/csv" });
+            const url = (window.URL || window.webkitURL).createObjectURL(blob);
+            const downloader = document.createElement("a");
+            downloader.href = url;
+            downloader.download = filename;
+            downloader.click();
+            downloader.remove();
+          };
+          downloadButtons.appendChild(button);
         }
       }
 
-      separatedData = []
-      for (const schoolName of schoolNames){
-        const schoolData = {}
-        schoolMenuData = dictData.filter(x => x['学校名称'] == schoolName)
-        schoolData['学校名称'] = schoolName
-        schoolData['学校所在地_全国地方公共団体コード'] = schoolMenuData[0]['学校所在地_全国地方公共団体コード']
-        schoolData['学校ID'] = schoolMenuData[0]['学校ID']
-        schoolData['提供年月日'] = schoolMenuData[0]['提供年月日']
-        schoolData['dictdata'] = schoolMenuData
-        schoolData['csvdata'] = Papa.unparse(schoolMenuData)
-        separatedData.push(schoolData)
+      function matrix2dict(matrixData) {
+        title = matrixData.shift();
+        return matrixData.map((x) =>
+          x.reduce((accumlator, currentValue, currentIndex) => {
+            accumlator[title[currentIndex]] = currentValue;
+            return accumlator;
+          }, {})
+        );
       }
-      return separatedData
-    }
 
-    if(window.File) {
-      const select = document.getElementById('select')
-
-      select.addEventListener('change', function(e) {
-        const fileData = e.target.files[0]
-        Papa.parse(fileData, {
-          complete: function(results){
-            matrixData = results['data']
-            separatedData = dataSeparatedBySchoolName(matrix2dict(matrixData))
-            generateDownloadButton(separatedData)
+      function dataSeparatedBySchoolName(dictData) {
+        schoolNames = [];
+        for (const x of dictData) {
+          if (!("学校名" in x)) {
+            continue;
           }
-        })
-      }, false)
-    }
-  </script>
-</body>
+          if (!schoolNames.includes(x["学校名"])) {
+            schoolNames.push(x["学校名"]);
+          }
+        }
+
+        separatedData = [];
+        for (const schoolName of schoolNames) {
+          const schoolData = {};
+          schoolMenuData = dictData.filter((x) => x["学校名"] == schoolName);
+          schoolData["学校名称"] = schoolName;
+          schoolData["全国地方公共団体コード"] =
+            schoolMenuData[0]["全国地方公共団体コード"];
+          schoolData["学校ID"] = schoolMenuData[0]["学校ID"];
+          schoolData["提供年月日"] = schoolMenuData[0]["年月日"];
+          schoolData["dictdata"] = schoolMenuData;
+          newSchoolMenuData = schoolMenuData.map((elm) => {
+            return {
+              提供年月日: elm["年月日"],
+              料理名称: elm["料理名称"],
+              "食品名称（独自）": elm["食品名称(独自)"],
+              "アレルゲン情報公開・非公開": elm["アレルゲン情報公開・非公開"],
+              "食品群（６群）": elm["食品群(6群)"],
+              "食品群（３群）": elm["食品群(3群)"],
+              エネルギー: elm["エネルギー"],
+              たんぱく質: elm["タンパク質"],
+              脂質: elm["脂質"],
+              炭水化物: elm["炭水化物"],
+              食塩相当量: elm["食塩相当量"],
+              アレルゲン品目: elm["アレルゲン品目"],
+              たんぱく質エネルギー比: elm["タンパク質エネルギー比"],
+              脂質エネルギー比: elm["脂質エネルギー比"],
+              食塩相当量: elm["食塩相当量"],
+              カルシウム: elm["カルシウム"],
+              マグネシウム: elm["マグネシウム"],
+              鉄: elm["鉄"],
+              ビタミンA＿ug: elm["ビタミンA_ug"],
+              ビタミンA＿ugRAE: elm["ビタミンA_ugRAE"],
+              ビタミンA_IU: elm["ビタミンA_IU"],
+              ビタミンB１: elm["ビタミンB1"],
+              ビタミンB２: elm["ビタミンB2"],
+              ビタミンC: elm["ビタミンC"],
+              食物繊維: elm["食物繊維"],
+              亜鉛: elm["亜鉛"],
+              糖質量: elm["糖質量"],
+            };
+          });
+          schoolData["csvdata"] = Papa.unparse(newSchoolMenuData);
+          separatedData.push(schoolData);
+        }
+        return separatedData;
+      }
+
+      if (window.File) {
+        const select = document.getElementById("select");
+
+        select.addEventListener(
+          "change",
+          function (e) {
+            const fileData = e.target.files[0];
+            Papa.parse(fileData, {
+              complete: function (results) {
+                matrixData = results["data"];
+                separatedData = dataSeparatedBySchoolName(
+                  matrix2dict(matrixData)
+                );
+                generateDownloadButton(separatedData);
+              },
+            });
+          },
+          false
+        );
+      }
+    </script>
+  </body>
+</html>
