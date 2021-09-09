@@ -22,7 +22,7 @@
           button.textContent = data["学校名称"];
           button.onclick = () => {
             const filename =
-              data["提供年月日"] +
+              data["提供年月日"].substr(0, 7).replace("-", "") +
               "_" +
               data["全国地方公共団体コード"] +
               "_" +
