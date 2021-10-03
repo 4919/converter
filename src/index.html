@@ -77,11 +77,11 @@
         console.log(dictData);
         schoolNames = [];
         for (const x of dictData) {
-          if (!("学校名" in x)) {
+          if (!("学校名称" in x)) {
             continue;
           }
-          if (!schoolNames.includes(x["学校名"])) {
-            schoolNames.push(x["学校名"]);
+          if (!schoolNames.includes(x["学校名称"])) {
+            schoolNames.push(x["学校名称"]);
           }
         }
 
@@ -89,19 +89,19 @@
         for (const schoolName of schoolNames) {
           const schoolData = {};
           rawSchoolData = dictData.find(
-            (data) => data["学校名"] === schoolName
+            (data) => data["学校名称"] === schoolName
           );
-          schoolData["都道府県名"] = rawSchoolData["都道府県名"];
-          schoolData["市区町村名"] = rawSchoolData["市区町村名"];
+          schoolData["都道府県名"] = rawSchoolData["学校所在地_都道府県名"];
+          schoolData["市区町村名"] = rawSchoolData["学校所在地_市区町村名"];
           schoolData["区分"] =
-            rawSchoolData["学校名"].substr(-3, 3).indexOf("小学校") <= 0
+            rawSchoolData["学校名称"].substr(-3, 3).indexOf("小学校") <= 0
               ? "小学校"
-              : rawSchoolData["学校名"].substr(-3, 3).indexOf("中学校") <= 0
+              : rawSchoolData["学校名称"].substr(-3, 3).indexOf("中学校") <= 0
               ? "中学校"
               : "不明";
-          schoolData["学校名"] = rawSchoolData["学校名"];
+          schoolData["学校名"] = rawSchoolData["学校名称"];
           schoolData["ファイル名"] =
-            rawSchoolData["年月日"].substr(0, 7).replace("-", "") +
+            rawSchoolData["提供年月日"].substr(0, 7).replace("-", "") +
             "_" +
             rawSchoolData["全国地方公共団体コード"] +
             "_" +
@@ -116,46 +116,45 @@
       function generateMenuDataFromDict(dictData) {
         schoolNames = [];
         for (const x of dictData) {
-          if (!("学校名" in x)) {
+          if (!("学校名称" in x)) {
             continue;
           }
-          if (!schoolNames.includes(x["学校名"])) {
-            schoolNames.push(x["学校名"]);
+          if (!schoolNames.includes(x["学校名称"])) {
+            schoolNames.push(x["学校名称"]);
           }
         }
 
         menuData = [];
         for (const schoolName of schoolNames) {
           const schoolData = {};
-          schoolMenuData = dictData.filter((x) => x["学校名"] == schoolName);
+          schoolMenuData = dictData.filter((x) => x["学校名称"] == schoolName);
           schoolData["学校名称"] = schoolName;
           schoolData["全国地方公共団体コード"] =
             schoolMenuData[0]["全国地方公共団体コード"];
           schoolData["学校ID"] = schoolMenuData[0]["学校ID"];
-          schoolData["提供年月日"] = schoolMenuData[0]["年月日"];
+          schoolData["提供年月日"] = schoolMenuData[0]["提供年月日"];
           schoolData["dictdata"] = schoolMenuData;
           newSchoolMenuData = schoolMenuData.map((elm) => {
             return {
-              提供年月日: elm["年月日"],
+              提供年月日: elm["提供年月日"],
               料理名称: elm["料理名称"],
-              "食品名称（独自）": elm["食品名称(独自)"],
+              "食品名称（独自）": elm["食品名称（独自）"],
               "アレルゲン情報公開・非公開": elm["アレルゲン情報公開・非公開"],
-              "食品群（６群）": elm["食品群(6群)"],
-              "食品群（３群）": elm["食品群(3群)"],
+              "食品群（６群）": elm["食品群（６群）"],
+              "食品群（３群）": elm["食品群（３群）"],
               エネルギー: elm["エネルギー"],
-              たんぱく質: elm["タンパク質"],
+              たんぱく質: elm["たんぱく質"],
               脂質: elm["脂質"],
               炭水化物: elm["炭水化物"],
               食塩相当量: elm["食塩相当量"],
               アレルゲン品目: elm["アレルゲン品目"],
-              たんぱく質エネルギー比: elm["タンパク質エネルギー比"],
+              たんぱく質エネルギー比: elm["たんぱく質エネルギー比"],
               脂質エネルギー比: elm["脂質エネルギー比"],
-              食塩相当量: elm["食塩相当量"],
               カルシウム: elm["カルシウム"],
               マグネシウム: elm["マグネシウム"],
               鉄: elm["鉄"],
-              ビタミンA＿ug: elm["ビタミンA_ug"],
-              ビタミンA＿ugRAE: elm["ビタミンA_ugRAE"],
+              ビタミンA＿ug: elm["ビタミンA＿ug"],
+              ビタミンA＿ugRAE: elm["ビタミンA＿ugRAE"],
               ビタミンA_IU: elm["ビタミンA_IU"],
               ビタミンB１: elm["ビタミンB1"],
               ビタミンB２: elm["ビタミンB2"],
