@@ -14,10 +14,10 @@
 
     <script src="js/lib/papaparse.min.js"></script>
     <script>
-      function generateDownloadButton(separatedData) {
+      function generateMenuDownloadButton(menuData) {
         const downloadButtons = document.getElementById("download-buttons");
 
-        for (const data of separatedData) {
+        for (const data of menuData) {
           const button = document.createElement("button");
           button.textContent = data["学校名称"];
           button.onclick = () => {
@@ -51,7 +51,7 @@
         );
       }
 
-      function dataSeparatedBySchoolName(dictData) {
+      function generateMenuDataFromDict(dictData) {
         schoolNames = [];
         for (const x of dictData) {
           if (!("学校名" in x)) {
@@ -62,7 +62,7 @@
           }
         }
 
-        separatedData = [];
+        menuData = [];
         for (const schoolName of schoolNames) {
           const schoolData = {};
           schoolMenuData = dictData.filter((x) => x["学校名"] == schoolName);
@@ -104,9 +104,9 @@
             };
           });
           schoolData["csvdata"] = Papa.unparse(newSchoolMenuData);
-          separatedData.push(schoolData);
+          menuData.push(schoolData);
         }
-        return separatedData;
+        return menuData;
       }
 
       if (window.File) {
@@ -119,10 +119,8 @@
             Papa.parse(fileData, {
               complete: function (results) {
                 matrixData = results["data"];
-                separatedData = dataSeparatedBySchoolName(
-                  matrix2dict(matrixData)
-                );
-                generateDownloadButton(separatedData);
+                menuData = generateMenuDataFromDict(matrix2dict(matrixData));
+                generateMenuDownloadButton(menuData);
               },
             });
           },
