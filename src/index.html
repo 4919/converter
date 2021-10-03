@@ -41,6 +41,28 @@
         }
       }
 
+      function generateSchoolDownloadButton(schoolData) {
+        const downloadButtons = document.getElementById("download-buttons");
+
+        const button = document.createElement("button");
+        button.textContent = "学校データ";
+
+        button.onclick = () => {
+          const filename = "school.csv";
+          const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
+          const blob = new Blob([bom, schoolData], {
+            type: "text/csv",
+          });
+          const url = (window.URL || window.webkitURL).createObjectURL(blob);
+          const downloader = document.createElement("a");
+          downloader.href = url;
+          downloader.download = filename;
+          downloader.click();
+          downloader.remove();
+        };
+        downloadButtons.appendChild(button);
+      }
+
       function matrix2dict(matrixData) {
         title = matrixData.shift();
         return matrixData.map((x) =>
@@ -49,6 +71,46 @@
             return accumlator;
           }, {})
         );
+      }
+
+      function generateSchoolDataFromDict(dictData) {
+        console.log(dictData);
+        schoolNames = [];
+        for (const x of dictData) {
+          if (!("学校名" in x)) {
+            continue;
+          }
+          if (!schoolNames.includes(x["学校名"])) {
+            schoolNames.push(x["学校名"]);
+          }
+        }
+
+        schoolsData = [];
+        for (const schoolName of schoolNames) {
+          const schoolData = {};
+          rawSchoolData = dictData.find(
+            (data) => data["学校名"] === schoolName
+          );
+          schoolData["都道府県名"] = rawSchoolData["都道府県名"];
+          schoolData["市区町村名"] = rawSchoolData["市区町村名"];
+          schoolData["区分"] =
+            rawSchoolData["学校名"].substr(-3, 3).indexOf("小学校") <= 0
+              ? "小学校"
+              : rawSchoolData["学校名"].substr(-3, 3).indexOf("中学校") <= 0
+              ? "中学校"
+              : "不明";
+          schoolData["学校名"] = rawSchoolData["学校名"];
+          schoolData["ファイル名"] =
+            rawSchoolData["年月日"].substr(0, 7).replace("-", "") +
+            "_" +
+            rawSchoolData["全国地方公共団体コード"] +
+            "_" +
+            rawSchoolData["学校ID"] +
+            ".csv";
+          schoolsData.push(schoolData);
+        }
+        const schoolData = Papa.unparse(schoolsData);
+        return schoolData;
       }
 
       function generateMenuDataFromDict(dictData) {
@@ -118,9 +180,13 @@
             const fileData = e.target.files[0];
             Papa.parse(fileData, {
               complete: function (results) {
-                matrixData = results["data"];
-                menuData = generateMenuDataFromDict(matrix2dict(matrixData));
+                dictData = matrix2dict(results["data"]);
+
+                menuData = generateMenuDataFromDict(dictData);
+                schoolData = generateSchoolDataFromDict(dictData);
+
                 generateMenuDownloadButton(menuData);
+                generateSchoolDownloadButton(schoolData);
               },
             });
           },
